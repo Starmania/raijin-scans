@@ -1,0 +1,41 @@
+name: Release reader bundle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - reader.js
+      - reader.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute UTC ISO timestamp
+        id: ts
+        run: |
+          iso="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          tag="$(date -u +'%Y%m%d-%H%M%S')"
+          echo "iso=$iso" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create release (published as latest)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.ts.outputs.tag }}" \
+            --title "${{ steps.ts.outputs.iso }}" \
+            --target "${{ github.sha }}" \
+            --latest \
+            --notes "Reader bundle from ${{ github.sha }}" \
+            reader.js reader.json
