@@ -74,10 +74,12 @@ async function rjGetPages(ctx, host) {
       if (u) pages.push(u);
     });
 
-    // cursor = payload's only string primitive; run = its only boolean primitive.
+    // cursor = the signed pagination token "<offset>.<unixTime>.<hmacHex>"; the payload also
+    // carries decoy string fields (e.g. "rj<hex>"), so match by shape, not position.
+    // run = a boolean primitive (more pages follow); keep iterating only while a cursor remains.
     var pv = Object.keys(found.payload).map(function (k) { return found.payload[k]; });
-    cursor = pv.filter(function (x) { return typeof x === "string"; })[0] || "";
-    run = pv.filter(function (x) { return typeof x === "boolean"; })[0] || false;
+    cursor = pv.filter(function (x) { return typeof x === "string" && /^\d+\.\d+\.[0-9a-f]{64}$/.test(x); })[0] || "";
+    run = cursor !== "" && pv.filter(function (x) { return typeof x === "boolean"; })[0] === true;
   }
 
   return pages;
