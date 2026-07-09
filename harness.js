@@ -102,6 +102,10 @@ async function run(args, checks) {
     const get = await flaresolverr(args.flaresolverr, { cmd: "request.get", url: args.chapterUrl, maxTimeout: 60000, session });
     const sol = get.solution || {};
     if (sol.status !== 200 || !sol.response) throw new Inconclusive(`GET ${args.chapterUrl} -> status ${sol.status}, len ${(sol.response || "").length}`);
+    // If FlareSolverr couldn't solve the CF challenge it may return the challenge page itself
+    // (status 200, no reader manifest). Treat this as a transport failure, not a BROKEN reader.
+    if (/Just a moment|_cf_chl_opt|challenge-platform|id="challenge-form"/.test(sol.response))
+      throw new Inconclusive(`Cloudflare challenge page returned for ${args.chapterUrl} — FlareSolverr clearance may have expired`);
     checks.push(`chapter captured (${sol.response.length} bytes)`);
 
     const baseUrl = new URL(args.chapterUrl).origin;
