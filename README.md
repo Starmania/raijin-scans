@@ -1,4 +1,6 @@
-# raijin-scans
+# Site dead, archived for legacy
+
+## raijin-scans
 
 Updatable page-list reader script for the **RaijinScans** (fr) extension in
 [keiyoushi/extensions-source](https://github.com/keiyoushi/extensions-source).
